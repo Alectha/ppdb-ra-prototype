@@ -1,32 +1,39 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\formulirController;
-use App\Http\Controllers\AdminController;
-use App\Http\Middleware\AdminMiddleware;
+use App\Http\Controllers\BerandaController;
+use App\Http\Controllers\PendaftaranController;
+use App\Http\Controllers\TentangController;
+use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\PendaftarController;
+use App\Http\Controllers\SettingController;
 
-// Register middleware aliases
-Route::aliasMiddleware('admin', AdminMiddleware::class);
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+*/
 
-Route::get('/', function () {
-    return view('ppdb.beranda');
-});
+Route::get('/', [BerandaController::class, 'index'])->name('beranda');
+Route::get('/pendaftaran', [PendaftaranController::class, 'index'])->name('pendaftaran');
+Route::post('/pendaftaran', [PendaftaranController::class, 'store'])->name('pendaftaran.store');
+Route::get('/pendaftaran/sukses', [PendaftaranController::class, 'sukses'])->name('pendaftaran.sukses');
+Route::get('/tentang', [TentangController::class, 'index'])->name('tentang');
 
-Route::get('/tentang', function () {
-    return view('ppdb.tentang');
-});
+Route::prefix('admin')->group(function () {
+    // setting
+    Route::get('/settings', [SettingController::class, 'index'])->name('admin.settings.index');
+    Route::put('/settings', [SettingController::class, 'update'])->name('admin.settings.update');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
+    Route::get('/pendaftar', [PendaftarController::class, 'index'])->name('admin.pendaftar.index');
+    Route::get('/pendaftar/{id}', [PendaftarController::class, 'show'])->name('admin.pendaftar.show');
+    Route::get('/pendaftar/{id}/edit', [PendaftarController::class, 'edit'])->name('admin.pendaftar.edit');
+    Route::put('/pendaftar/{id}', [PendaftarController::class, 'update'])->name('admin.pendaftar.update');
+    Route::delete('/pendaftar/{id}', [PendaftarController::class, 'destroy'])->name('admin.pendaftar.destroy');
 
-Route::get('/formulir', [formulirController::class, 'formulir']);
-Route::post('/formulir', [formulirController::class, 'submitForm'])->name('form.submit');
-
-// Admin Routes
-Route::redirect('/admin', '/admin/login');
-Route::prefix('admin')->group(function() {
-    Route::get('/login', [AdminController::class, 'login'])->name('admin.login');
-    Route::post('/authenticate', [AdminController::class, 'authenticate'])->name('admin.authenticate');
-    
-    Route::middleware(['auth', 'admin'])->group(function() {
-        Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
-        Route::post('/logout', [AdminController::class, 'logout'])->name('admin.logout');
-    });
+    // Admin Authentication Routes
+    Route::get('/login', [AuthController::class, 'showLoginForm'])->name('admin.login');
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/logout', [AuthController::class, 'logout'])->name('admin.logout');
 });
